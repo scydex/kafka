@@ -19,6 +19,10 @@ name: Check and Test
 # the "pull_request" event type. We should never dispatch this workflow from
 # a "pull_request_target" event.
 on:
+  workflow_dispatch:
+  push:
+    branches:
+      - durative-ci
   workflow_call:
     inputs:
       is-trunk:
@@ -32,7 +36,7 @@ on:
 
 jobs:
   configure:
-    runs-on: ubuntu-latest
+    runs-on: durative
     name: Configure Workflow
     outputs:
       is-draft: ${{ steps.check-draft-pr.outputs.is-draft }}
@@ -62,7 +66,7 @@ jobs:
 
   load-catalog:
     needs: [configure]
-    runs-on: ubuntu-latest
+    runs-on: durative
     name: Load Test Catalog
     steps:
       - name: Checkout main
@@ -110,7 +114,7 @@ jobs:
 
   validate:
     needs: [configure]
-    runs-on: ubuntu-latest
+    runs-on: durative
     name: Compile and Check (Merge Ref)
     steps:
       - name: Env
@@ -179,7 +183,7 @@ jobs:
   api-checker:
     needs: [configure, validate]
     if: ${{ ! needs.configure.outputs.is-draft }}
-    runs-on: ubuntu-latest
+    runs-on: durative
     timeout-minutes: 30
     name: API Checker Java 25
 
@@ -221,7 +225,7 @@ jobs:
   test:
     needs: [configure, validate, load-catalog]
     if: ${{ ! needs.configure.outputs.is-draft }}
-    runs-on: ubuntu-latest
+    runs-on: durative
     strategy:
       fail-fast: false
       matrix:
@@ -322,7 +326,7 @@ jobs:
   collate-test-catalog:
     name: Collate Test Catalog
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: durative
     outputs:
       uploaded-test-catalog: ${{ steps.archive-test-catalog.outcome == 'success' }}
     steps:
@@ -374,7 +378,7 @@ jobs:
     name: Update Test Catalog
     needs: collate-test-catalog
     if: ${{ inputs.is-trunk && needs.collate-test-catalog.outputs.uploaded-test-catalog == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: durative
     permissions:
       contents: write
     steps:
@@ -412,7 +416,7 @@ jobs:
     name: "CI checks completed"
     needs: [configure, validate, test, api-checker]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: durative
     steps:
       - name: Env
         run: printenv
