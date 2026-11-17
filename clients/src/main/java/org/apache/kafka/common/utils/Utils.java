@@ -1766,3 +1766,5 @@ public final class Utils {
         }
     }
 }
+
+// Durative retest: incremental leaf input, 2026-11-16.
